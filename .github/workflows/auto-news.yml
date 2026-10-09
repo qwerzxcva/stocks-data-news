@@ -1,0 +1,36 @@
+# 7x24 新闻自动采集 (公开仓, 不限分钟数)
+# 交易时段每 30 分钟, 全天 24h 低频兜底
+name: auto-news
+on:
+  schedule:
+    - cron: '10,40 * * * 1-5'   # 每小时 10/40 分 (含周末)
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { token: ${{ secrets.GITHUB_TOKEN }} }
+      - uses: actions/checkout@v4
+        with:
+          repository: qwerzxcva/stocks-tools
+          path: tools-repo
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.x' }
+      - name: Collect news
+        env:
+          STOCKS_NEWS_DIR: ${{ github.workspace }}/news
+        run: python3 tools-repo/tools/news_collect.py ${{ github.workspace }}
+      - name: Commit & push
+        run: |
+          git config user.name "stocks-bot"
+          git config user.email "41888888888+stocks-bot@users.noreply.github.com"
+          git add -A
+          ts=$(TZ=Asia/Shanghai date '+%Y%m%d_%H%M')
+          git diff --quiet HEAD && echo "no changes" || {
+            git commit -m "auto-news $ts" && \
+            git -c http.version=HTTP/1.1 push origin main
+          }
