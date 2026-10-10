@@ -1,3 +1,6 @@
+# 每 30min 采集 7x24 新闻; 工作日 10/40 分
+# 免费额度: 每轮 ~0.5min, 48轮/天 × 22天 ≈ 528 min/月
+# 注: 公开仓 Actions 分钟计入 2000/月, 如需 7x24 全时段再加 cron
 name: auto-news
 on:
   schedule:
